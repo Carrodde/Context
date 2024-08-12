@@ -1,35 +1,85 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import { CartContext, ICartContext } from "./context/CartContext";
+import { Cart } from "./models/cart";
+import { DisplayCart } from "./components/DisplayCart";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [cart, setCart] = useState<ICartContext>({
+    cart: JSON.parse(localStorage.getItem("cartItems") || "{cart: []}").cart,
+    add: () => {},
+    remove: () => {},
+    increase: () => {},
+    decrease: () => {},
+  });
+
+  cart.add = () => {
+    const addToCart = {
+      ...cart,
+      cart: [...cart.cart, new Cart(2, "Päron", 1)],
+    };
+    setCart(addToCart);
+    localStorage.setItem("cartItems", JSON.stringify(addToCart));
+  };
+
+  cart.remove = (id: number) => {
+    const removeFromCart = {
+      ...cart,
+      cart: cart.cart.filter((cart) => cart.id !== id),
+    };
+    setCart(removeFromCart);
+    localStorage.setItem("cartItems", JSON.stringify(removeFromCart));
+  };
+
+  cart.increase = (id: number) => {
+    const increaseAmount = {
+      ...cart,
+      cart: cart.cart.map((item) => {
+        if (item.id === id) {
+          return { ...item, amount: item.amount + 1 };
+        } else {
+          return item;
+        }
+      }),
+    };
+    setCart(increaseAmount);
+    localStorage.setItem("cartItems", JSON.stringify(increaseAmount));
+  };
+
+  cart.decrease = (id: number) => {
+    const decreaseAmount = {
+      ...cart,
+      cart: cart.cart.map((item) => {
+        if (item.id === id) {
+          return { ...item, amount: item.amount - 1 };
+        } else {
+          return item;
+        }
+      }),
+    };
+    setCart(decreaseAmount);
+    localStorage.setItem("cartItems", JSON.stringify(decreaseAmount));
+  };
+
+  // const handleBirthday = (person: Person) => {
+  //   setPersons(
+  //     persons.map((p) => {
+  //       if (p.name === person.name) {
+  //         return { ...p, age: p.age + 1 };
+  //       } else {
+  //         return p;
+  //       }
+  //     })
+  //   );
+  // };
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <CartContext.Provider value={cart}>
+        <DisplayCart></DisplayCart>
+      </CartContext.Provider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
